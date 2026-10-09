@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Campus IT Repair Hub - Booking Status</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <header class="header">
+    <div class="header-container">
+      <a href="/" class="site-title">
+        <span class="primary">Campus IT</span> <span class="accent">Repair Hub</span>
+      </a>
+      <nav class="nav-links">
+        <a href="/" class="nav-link">Services</a>
+        <a href="/book.html" class="nav-link">Book Now</a>
+        <a href="/status.html" class="nav-link active">Check Status</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="main-container">
+    <div class="card">
+      <h1 style="margin-bottom: var(--space-md); font-size: 1.5rem;">Check Booking Status</h1>
+      
+      <form id="status-form" novalidate>
+        <div class="form-group">
+          <label for="reference" class="form-label">Reference Number *</label>
+          <input type="text" id="reference" class="form-input" placeholder="e.g. BK123456" style="text-transform: uppercase;">
+          <div id="reference-error" class="field-error"></div>
+        </div>
+        <button type="submit" id="search-btn" class="btn btn-primary">Search Booking</button>
+      </form>
+    </div>
+
+    <div id="status-result"></div>
+  </main>
+
+  <script src="/js/app.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      document.getElementById("status-form").addEventListener("submit", handleSearch);
+
+      // Search automatically if reference is passed via query params
+      const params = new URLSearchParams(window.location.search);
+      const ref = params.get("ref");
+      if (ref) {
+        document.getElementById("reference").value = ref;
+        performSearch(ref);
+      }
+    });
+
+    async function handleSearch(e) {
+      e.preventDefault();
+      const form = e.target;
+      clearAllErrors(form);
+
+      const refInput = document.getElementById("reference").value.trim();
+      if (!refInput) {
+        setFieldError("reference", "Please enter a reference number.");
+        return;
+      }
+
+      await performSearch(refInput);
+    }
+
+    async function performSearch(ref) {
+      const resultContainer = document.getElementById("status-result");
+      const searchBtn = document.getElementById("search-btn");
+
+      setButtonLoading(searchBtn, true);
+      resultContainer.innerHTML = `<div class="card state-box">Searching...</div>`;
+
+      try {
+        const res = await fetch(`/api/bookings/${encodeURIComponent(ref)}`);
+        const data = await res.json();
+
+        if (!res.ok) {
+          throw new Error(data.error || "Booking not found.");
+        }
+
+        resultContainer.innerHTML = `
+          <div class="card">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: var(--space-md); flex-wrap: wrap; gap: var(--space-xs);">
+              <div>
+                <h2 style="font-size: 1.25rem;">Reference: ${escapeHtml(data.reference)}</h2>
+                <p style="color: var(--text-muted); font-size: 0.9rem;">Created on ${formatDate(data.created_at.split("T")[0])}</p>
+              </div>
+              <span class="status-badge status-${data.status}">${data.status}</span>
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: var(--space-xs);">
+              <p><strong>Service:</strong> ${escapeHtml(data.services ? data.services.name : "N/A")}</p>
+              <p><strong>Price:</strong> ${data.services ? formatPeso(data.services.price) : "N/A"}</p>
+              <p><strong>Scheduled Date:</strong> ${formatDate(data.booking_date)}</p>
+              <p><strong>Scheduled Time:</strong> ${formatTime(data.booking_time)}</p>
+              <p><strong>Devices:</strong> ${data.guests}</p>
+              <p><strong>Client Name:</strong> ${escapeHtml(data.name)}</p>
+              <p><strong>Contact:</strong> ${escapeHtml(data.contact)}</p>
+              <p><strong>Email:</strong> ${escapeHtml(data.email)}</p>
+              <p><strong>Notes:</strong> ${escapeHtml(data.notes || "None")}</p>
+            </div>
+          </div>
+        `;
+        showToast("Booking record retrieved.", "success");
+      } catch (err) {
+        resultContainer.innerHTML = `<div class="card state-box" style="color: var(--danger-color);">${escapeHtml(err.message)}</div>`;
+        showToast(err.message, "error");
+      } finally {
+        setButtonLoading(searchBtn, false);
+      }
+    }
+  </script>
+</body>
+</html>

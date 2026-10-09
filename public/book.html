@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Campus IT Repair Hub - Book Appointment</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <header class="header">
+    <div class="header-container">
+      <a href="/" class="site-title">
+        <span class="primary">Campus IT</span> <span class="accent">Repair Hub</span>
+      </a>
+      <nav class="nav-links">
+        <a href="/" class="nav-link">Services</a>
+        <a href="/book.html" class="nav-link active">Book Now</a>
+        <a href="/status.html" class="nav-link">Check Status</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="main-container">
+    <div class="card">
+      <h1 style="margin-bottom: var(--space-lg); font-size: 1.5rem;">Book a Service Appointment</h1>
+      
+      <form id="booking-form" novalidate>
+        <div class="form-group">
+          <label for="service_id" class="form-label">Service Required *</label>
+          <select id="service_id" class="form-select">
+            <option value="">-- Select a Service --</option>
+          </select>
+          <div id="service_id-error" class="field-error"></div>
+        </div>
+
+        <div class="form-group">
+          <label for="booking_date" class="form-label">Preferred Date *</label>
+          <input type="date" id="booking_date" class="form-input">
+          <div id="booking_date-error" class="field-error"></div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Preferred Time Slot *</label>
+          <input type="hidden" id="booking_time">
+          <div id="time-slots-container" class="time-grid"></div>
+          <div id="booking_time-error" class="field-error"></div>
+        </div>
+
+        <div class="form-group">
+          <label for="guests" class="form-label">Number of Devices *</label>
+          <input type="number" id="guests" class="form-input" min="1" value="1">
+          <div id="guests-error" class="field-error"></div>
+        </div>
+
+        <div class="form-group">
+          <label for="name" class="form-label">Full Name *</label>
+          <input type="text" id="name" class="form-input" placeholder="e.g. Juan Cruz">
+          <div id="name-error" class="field-error"></div>
+        </div>
+
+        <div class="form-group">
+          <label for="contact" class="form-label">Contact Number *</label>
+          <input type="text" id="contact" class="form-input" placeholder="e.g. 09123456789">
+          <div id="contact-error" class="field-error"></div>
+        </div>
+
+        <div class="form-group">
+          <label for="email" class="form-label">Email Address *</label>
+          <input type="email" id="email" class="form-input" placeholder="e.g. student@school.edu.ph">
+          <div id="email-error" class="field-error"></div>
+        </div>
+
+        <div class="form-group">
+          <label for="notes" class="form-label">Issue Details / Additional Notes</label>
+          <textarea id="notes" class="form-textarea" placeholder="Describe the problem with your device..."></textarea>
+          <div id="notes-error" class="field-error"></div>
+        </div>
+
+        <button type="submit" id="submit-btn" class="btn btn-secondary" style="margin-top: var(--space-md);">
+          Submit Booking
+        </button>
+      </form>
+    </div>
+  </main>
+
+  <script src="/js/app.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      initTimeSlots();
+      setMinDate();
+      loadServices();
+
+      document.getElementById("booking-form").addEventListener("submit", handleFormSubmit);
+    });
+
+    function setMinDate() {
+      const today = new Date().toISOString().split("T")[0];
+      document.getElementById("booking_date").setAttribute("min", today);
+    }
+
+    function initTimeSlots() {
+      const container = document.getElementById("time-slots-container");
+      container.innerHTML = "";
+
+      // 07:00 to 17:00 in 30-min steps
+      for (let hour = 7; hour <= 17; hour++) {
+        for (let min = 0; min < 60; min += 30) {
+          if (hour === 17 && min > 0) break;
+
+          const hh = String(hour).padStart(2, "0");
+          const mm = String(min).padStart(2, "0");
+          const timeVal = `${hh}:${mm}`;
+          
+          const btn = document.createElement("button");
+          btn.type = "button";
+          btn.className = "time-slot-btn";
+          btn.textContent = formatTime(timeVal);
+          btn.addEventListener("click", () => {
+            document.querySelectorAll(".time-slot-btn").forEach((b) => b.classList.remove("selected"));
+            btn.classList.add("selected");
+            document.getElementById("booking_time").value = timeVal;
+            setFieldError("booking_time", null);
+          });
+
+          container.appendChild(btn);
+        }
+      }
+    }
+
+    async function loadServices() {
+      const select = document.getElementById("service_id");
+      try {
+        const res = await fetch("/api/services");
+        const services = await res.json();
+
+        if (!res.ok) throw new Error(services.error || "Failed to load services.");
+
+        services.forEach((s) => {
+          const opt = document.createElement("option");
+          opt.value = s.id;
+          opt.textContent = `${s.name} (${formatPeso(s.price)})`;
+          select.appendChild(opt);
+        });
+
+        // Preselect from URL
+        const params = new URLSearchParams(window.location.search);
+        const preselectedId = params.get("service_id");
+        if (preselectedId) {
+          select.value = preselectedId;
+        }
+      } catch (err) {
+        showToast(err.message, "error");
+      }
+    }
+
+    async function handleFormSubmit(e) {
+      e.preventDefault();
+      const form = e.target;
+      clearAllErrors(form);
+
+      const payload = {
+        service_id: document.getElementById("service_id").value,
+        booking_date: document.getElementById("booking_date").value,
+        booking_time: document.getElementById("booking_time").value,
+        guests: document.getElementById("guests").value,
+        name: document.getElementById("name").value.trim(),
+        contact: document.getElementById("contact").value.trim(),
+        email: document.getElementById("email").value.trim(),
+        notes: document.getElementById("notes").value.trim()
+      };
+
+      // Client-side Validation
+      let isValid = true;
+
+      if (!payload.service_id) {
+        setFieldError("service_id", "Please select a service.");
+        isValid = false;
+      }
+
+      if (!payload.booking_date) {
+        setFieldError("booking_date", "Please select a date.");
+        isValid = false;
+      } else {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const selected = new Date(payload.booking_date);
+        if (selected < today) {
+          setFieldError("booking_date", "Booking date cannot be in the past.");
+          isValid = false;
+        }
+      }
+
+      if (!payload.booking_time) {
+        setFieldError("booking_time", "Please select a time slot.");
+        isValid = false;
+      }
+
+      if (!payload.guests || parseInt(payload.guests, 10) < 1) {
+        setFieldError("guests", "Must be at least 1 device.");
+        isValid = false;
+      }
+
+      if (!payload.name) {
+        setFieldError("name", "Please enter your full name.");
+        isValid = false;
+      }
+
+      if (!payload.contact) {
+        setFieldError("contact", "Please enter a contact number.");
+        isValid = false;
+      }
+
+      if (!payload.email || !/\S+@\S+\.\S+/.test(payload.email)) {
+        setFieldError("email", "Please enter a valid email address.");
+        isValid = false;
+      }
+
+      if (!isValid) return;
+
+      const submitBtn = document.getElementById("submit-btn");
+      setButtonLoading(submitBtn, true);
+
+      try {
+        const res = await fetch("/api/bookings", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+          throw new Error(data.error || "Failed to create booking.");
+        }
+
+        window.location.href = `/confirmation.html?ref=${encodeURIComponent(data.reference)}`;
+      } catch (err) {
+        showToast(err.message, "error");
+        setButtonLoading(submitBtn, false);
+      }
+    }
+  </script>
+</body>
+</html>
