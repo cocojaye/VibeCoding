@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>School IT Repair Shop - Booking System</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1><span class="highlight-blue">Campus IT</span> <span class="highlight-green">Repair Hub</span></h1>
+      <p>Official School IT Department Hardware & Software Services</p>
+    </header>
+
+    <div class="nav-tabs">
+      <button class="tab-btn active" onclick="switchTab('services-tab')">Services & Pricing</button>
+      <button class="tab-btn" onclick="switchTab('book-tab')">Book Service</button>
+      <button class="tab-btn" onclick="switchTab('lookup-tab')">Check Booking Status</button>
+    </div>
+
+    <!-- Services Section -->
+    <div id="services-tab" class="section active">
+      <h2>Available Repair Services</h2>
+      <div id="services-list" class="services-grid">
+        <p>Loading available services...</p>
+      </div>
+    </div>
+
+    <!-- Booking Form Section -->
+    <div id="book-tab" class="section">
+      <h2>Schedule a Service Appointment</h2>
+      <form id="booking-form">
+        <div class="form-group">
+          <label for="service-select">Select Service</label>
+          <select id="service-select" required>
+            <option value="">-- Choose a Service --</option>
+          </select>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="client-name">Full Name</label>
+            <input type="text" id="client-name" required placeholder="e.g. Juan Cruz">
+          </div>
+          <div class="form-group">
+            <label for="client-contact">Contact Number</label>
+            <input type="text" id="client-contact" required placeholder="e.g. 09123456789">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="client-email">Email Address</label>
+          <input type="email" id="client-email" required placeholder="e.g. student@school.edu.ph">
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="booking-date">Preferred Date</label>
+            <input type="date" id="booking-date" required>
+          </div>
+          <div class="form-group">
+            <label for="booking-time">Preferred Time</label>
+            <input type="time" id="booking-time" required>
+          </div>
+          <div class="form-group">
+            <label for="booking-guests">Number of Devices</label>
+            <input type="number" id="booking-guests" min="1" max="5" value="1" required>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="booking-notes">Issue Description / Additional Notes</label>
+          <textarea id="booking-notes" rows="3" placeholder="Describe the problem with your device..."></textarea>
+        </div>
+
+        <button type="submit" class="btn">Confirm & Submit Booking</button>
+      </form>
+
+      <div id="booking-confirmation" style="display: none; margin-top: 20px;">
+        <div class="confirmation-card">
+          <h2>Booking Submitted Successfully!</h2>
+          <p>Please keep your reference number to check status later:</p>
+          <div class="ref-number" id="conf-ref">IT-XXXXXX</div>
+          <div id="conf-details" style="text-align: left; margin-top: 15px;"></div>
+          <button onclick="resetBookingForm()" class="btn btn-blue" style="margin-top: 20px; width: auto;">Book Another Service</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Status Lookup Section -->
+    <div id="lookup-tab" class="section">
+      <h2>Check Booking Status</h2>
+      <form id="lookup-form" class="form-row" style="align-items: flex-end;">
+        <div class="form-group" style="margin-bottom: 0;">
+          <label for="lookup-ref">Booking Reference Number</label>
+          <input type="text" id="lookup-ref" placeholder="e.g. IT-A1B2C3" required>
+        </div>
+        <button type="submit" class="btn btn-blue" style="width: auto; height: 42px;">Search</button>
+      </form>
+
+      <div id="lookup-result" style="margin-top: 20px;"></div>
+    </div>
+  </div>
+
+  <script src="/js/app.js"></script>
+</body>
+</html>

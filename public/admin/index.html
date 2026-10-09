@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>IT Shop Admin Dashboard</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1><span class="highlight-blue">IT Repair Shop</span> <span class="highlight-green">Admin Portal</span></h1>
+      <p>Manage Campus Repair Bookings & Statuses</p>
+    </header>
+
+    <!-- Admin Login Section -->
+    <div id="login-section" class="section active" style="max-width: 400px; margin: 0 auto;">
+      <h2>Admin Login</h2>
+      <form id="admin-login-form">
+        <div class="form-group">
+          <label for="admin-username">Username</label>
+          <input type="text" id="admin-username" required>
+        </div>
+        <div class="form-group">
+          <label for="admin-password">Password</label>
+          <input type="password" id="admin-password" required>
+        </div>
+        <button type="submit" class="btn btn-blue">Login</button>
+      </form>
+      <div id="login-error" style="color: #ef4444; margin-top: 10px; font-weight: bold;"></div>
+    </div>
+
+    <!-- Admin Dashboard Section -->
+    <div id="dashboard-section" class="section">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h2>All Bookings</h2>
+        <div>
+          <span id="admin-welcome" style="margin-right: 15px; color: var(--text-muted);"></span>
+          <button onclick="handleLogout()" class="btn btn-danger" style="width: auto; padding: 6px 16px;">Logout</button>
+        </div>
+      </div>
+
+      <div class="table-responsive">
+        <table>
+          <thead>
+            <tr>
+              <th>Ref #</th>
+              <th>Client</th>
+              <th>Contact</th>
+              <th>Service</th>
+              <th>Date & Time</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="bookings-table-body">
+            <tr><td colspan="7">Loading bookings...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <script src="/js/admin.js"></script>
+</body>
+</html>
