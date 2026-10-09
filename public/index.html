@@ -35,6 +35,27 @@
 
   <script src="/js/app.js"></script>
   <script>
+    // Inline fallback so formatCurrency never throws an error
+    if (typeof formatCurrency !== 'function') {
+      window.formatCurrency = function(amount) {
+        const num = parseFloat(amount);
+        if (isNaN(num)) return "₱0.00";
+        return "₱" + num.toFixed(2).replace(/\d(?=(\d{3})+\.)/g, "$&,");
+      };
+    }
+
+    if (typeof escapeHtml !== 'function') {
+      window.escapeHtml = function(str) {
+        if (!str) return "";
+        return String(str)
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;")
+          .replace(/'/g, "&#039;");
+      };
+    }
+
     document.addEventListener("DOMContentLoaded", async () => {
       const container = document.getElementById("services-container");
       try {
